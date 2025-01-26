@@ -17,6 +17,7 @@ namespace Calculator
     public partial class MainWindow : Window
     {
         double lastNumber, result;
+        SelectedOperator selectedOperator;
 
         public MainWindow()
         {
@@ -30,15 +31,42 @@ namespace Calculator
 
         private void EqualButton_Click(object sender, RoutedEventArgs e)
         {
-            
+            double newNumber;
+
+            if (double.TryParse(resultLabel.Content.ToString(), out newNumber))
+            {
+                switch (selectedOperator) 
+                {
+                    case SelectedOperator.Addition:
+                        this.result = SimpleMath.Add(lastNumber, newNumber);
+                        break;
+                    case SelectedOperator.Subtraction:
+                        this.result = SimpleMath.Subtract(lastNumber, newNumber);
+                        break;
+                    case SelectedOperator.Division:
+                        this.result = SimpleMath.Divide(lastNumber, newNumber);
+                        break;
+                    case SelectedOperator.Multiplication:
+                        this.result = SimpleMath.Multiply(lastNumber, newNumber);
+                        break;
+                    default:
+                        break;
+                }
+
+                resultLabel.Content = result;
+            }
         }
 
         private void PercentageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (double.TryParse(resultLabel.Content.ToString(), out lastNumber))
+            // 50 + 5% (2.5) = 52.5
+            // 80 + 10% (8) = 88
+            if (double.TryParse(resultLabel.Content.ToString(), out double tempNumber))
             {
-                lastNumber = lastNumber / 100;
-                resultLabel.Content = lastNumber.ToString();
+                tempNumber = tempNumber / 100;
+                if (lastNumber != 0)
+                    tempNumber *= lastNumber;
+                resultLabel.Content = tempNumber.ToString();
             }
         }
 
@@ -54,6 +82,8 @@ namespace Calculator
         private void AcButton_Click(object sender, RoutedEventArgs e)
         {
             resultLabel.Content = "0";
+            result = 0;
+            lastNumber = 0;
         }
 
         private void OperationButton_Click(object sender, RoutedEventArgs e)
@@ -62,6 +92,26 @@ namespace Calculator
             {
                 resultLabel.Content = "0";
             }
+
+            if (sender == multiplicationButton)
+                selectedOperator = SelectedOperator.Multiplication;
+            if (sender == divisionButton)
+                selectedOperator = SelectedOperator.Division;
+            if (sender == plusButton)
+                selectedOperator = SelectedOperator.Addition;
+            if (sender == minusButton)
+                selectedOperator = SelectedOperator.Subtraction;
+        }
+
+        private void PeriodButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (resultLabel.Content.ToString().Contains("."))
+            {
+                // Do nothing
+                return;
+            }
+
+            resultLabel.Content = $"{resultLabel.Content}.";
         }
 
         private void NumberButton_Click(object sender, RoutedEventArgs e)
@@ -97,6 +147,43 @@ namespace Calculator
             {
                 resultLabel.Content = $"{resultLabel.Content}{selectedValue}"; 
             }
+        }
+    }
+
+    public enum SelectedOperator
+    {
+        Addition,
+        Subtraction,
+        Multiplication,
+        Division
+    }
+
+    public class SimpleMath
+    {
+        public static double Add(double x, double y)
+        {
+            return x + y;
+        }
+
+        public static double Subtract(double x, double y)
+        {
+            return x - y;
+        }
+
+        public static double Multiply(double x, double y)
+        {
+            return x * y;
+        }
+
+        public static double Divide(double x, double y)
+        {
+            if (y == 0)
+            {
+                MessageBox.Show("Division by 0 is not supported", "Wrong operation", MessageBoxButton.OK, MessageBoxImage.Error);
+                return 0;
+            }
+
+            return x / y;
         }
     }
 }
